@@ -3,11 +3,11 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments,
 from peft import LoraConfig, get_peft_model, TaskType
 from datasets import load_dataset
 
-# 路径配置
+# Path configuration
 model_name = "microsoft/phi-2"
 output_dir = "./lora-phi2-checkpoint-fast"
 
-# 加载 tokenizer 和模型
+# Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(
@@ -17,7 +17,7 @@ model = AutoModelForCausalLM.from_pretrained(
     trust_remote_code=True
 )
 
-# 附加 LoRA 配置
+# Attach LoRA configuration
 lora_config = LoraConfig(
     r=8,
     lora_alpha=32,
@@ -28,10 +28,10 @@ lora_config = LoraConfig(
 )
 model = get_peft_model(model, lora_config)
 
-# 加载部分 Alpaca 数据集（前5000条）
+# Load a subset of the Alpaca dataset (first 5,000 samples)
 raw_dataset = load_dataset("tatsu-lab/alpaca", split="train[:5000]")
 
-# 构造 prompt
+# Construct prompt
 def format_prompt(example):
     instruction = example["instruction"]
     input_text = example["input"]
@@ -59,7 +59,7 @@ tokenized_dataset.set_format(type="torch", columns=["input_ids", "attention_mask
 # Data Collator
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-# 训练参数（预计3小时内完成）
+# Training parameters
 training_args = TrainingArguments(
     output_dir=output_dir,
     per_device_train_batch_size=2,
@@ -67,7 +67,7 @@ training_args = TrainingArguments(
     num_train_epochs=1,
     learning_rate=2e-4,
     fp16=True,
-    save_strategy="no",     # 不保存中间 checkpoint，提高速度
+    save_strategy="no",     
     logging_steps=10,
     logging_dir="./logs",
     report_to="none"
@@ -81,10 +81,10 @@ trainer = Trainer(
     data_collator=data_collator,
 )
 
-# 开始训练
+# Start training
 trainer.train()
 
-# 保存 adapter
+# Save adapter
 model.save_pretrained("./lora-phi2-adapter-fast")
 
-print("LoRA 微调完成并保存")
+print("LoRA fine-tuning completed and saved")
