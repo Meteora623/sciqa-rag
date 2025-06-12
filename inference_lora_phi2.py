@@ -3,15 +3,15 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 import os
 
-# 设定路径
+# Set path
 base_model = "microsoft/phi-2"
-adapter_path = "./finetune/lora-phi2-adapter-fast"  # 你的 LoRA adapter 目录
+adapter_path = "./finetune/lora-phi2-adapter-fast" 
 
-# 加载 tokenizer
+# Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 
-# 加载 base 模型 + LoRA adapter
+# Load base model and LoRA adapter
 base = AutoModelForCausalLM.from_pretrained(
     base_model,
     torch_dtype=torch.float16,
@@ -22,7 +22,7 @@ base = AutoModelForCausalLM.from_pretrained(
 model = PeftModel.from_pretrained(base, adapter_path)
 model.eval()
 
-# 推理函数
+# Inference function
 def generate_response(instruction: str, input_text: str = ""):
     if input_text:
         prompt = f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n{instruction}\n\n### Input:\n{input_text}\n\n### Response:\n"
@@ -43,7 +43,7 @@ def generate_response(instruction: str, input_text: str = ""):
     return response.replace(prompt, "").strip()
 
 
-# 示例测试
+# Example test
 if __name__ == "__main__":
     question = "What are three benefits of exercise?"
     print("Question:", question)
